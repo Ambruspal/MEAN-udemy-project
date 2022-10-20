@@ -59,18 +59,18 @@
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
-                        "browserTarget": "MEAN:build"
+                        "browserTarget": "MEAN-Angular:build"
                     },
                     "configurations": {
                         "production": {
-                            "browserTarget": "MEAN:build:production"
+                            "browserTarget": "MEAN-Angular:build:production"
                         }
                     }
                 },
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",
                     "options": {
-                        "browserTarget": "MEAN:build"
+                        "browserTarget": "MEAN-Angular:build"
                     }
                 },
                 "test": {
@@ -89,11 +89,11 @@
                     "builder": "@angular-devkit/build-angular:protractor",
                     "options": {
                         "protractorConfig": "e2e/protractor.conf.js",
-                        "devServerTarget": "MEAN:serve"
+                        "devServerTarget": "MEAN-Angular:serve"
                     },
                     "configurations": {
                         "production": {
-                            "devServerTarget": "MEAN:serve:production"
+                            "devServerTarget": "MEAN-Angular:serve:production"
                         }
                     }
                 }
