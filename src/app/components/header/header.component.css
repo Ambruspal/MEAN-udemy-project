@@ -1,0 +1,13 @@
+mat-toolbar {
+    display: flex;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+ul {
+    list-style: none;
+    margin-left: auto;
+}

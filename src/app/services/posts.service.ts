@@ -3,8 +3,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Post } from '../models/post.model';
+import { Post, PostResponse } from '../models/post.model';
 import { POSTS_URL, SERVER_URL } from '../constants/url.constants';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +15,7 @@ export class PostsService {
   private postsUpdatedSubject: Subject<Array<Post>> = new Subject();
   private serverUrl: string = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   getPosts(): void {
     this.http
@@ -36,25 +37,47 @@ export class PostsService {
       });
   }
 
+  getPost(id: string) {
+    return this.http.get<PostResponse>(
+      `${SERVER_URL}${this.serverUrl}${POSTS_URL}${id}`
+    );
+  }
+
   getPostsUpdatedListener(): Observable<Array<Post>> {
     return this.postsUpdatedSubject.asObservable();
   }
 
   addPost(title: string, content: string): void {
-    const post = {
+    const post: Post = {
       title,
       content,
     };
 
     this.http
-      .post<{ message: string }>(
+      .post<{ message: string; postId: string }>(
         `${SERVER_URL}${this.serverUrl}${POSTS_URL}`,
         post
       )
       .subscribe((response) => {
         console.log(response.message);
+        post.id = response.postId;
         this.posts.push(post);
-        this.postsUpdatedSubject.next(this.posts.slice());
+        this.triggerEventsOnSuccess();
+      });
+  }
+
+  updatePost(id: string, title: string, content: string): void {
+    const postUpdate = { id, title, content };
+    this.http
+      .put<{ message: string; postId: string }>(
+        `${SERVER_URL}${this.serverUrl}${POSTS_URL}${id}`,
+        postUpdate
+      )
+      .subscribe((response) => {
+        console.log(response.message);
+        const index = this.posts.findIndex((p) => p.id === postUpdate.id);
+        this.posts.splice(index, 1, postUpdate);
+        this.triggerEventsOnSuccess();
       });
   }
 
@@ -66,5 +89,10 @@ export class PostsService {
         this.posts = this.posts.filter((post) => post.id !== id);
         this.postsUpdatedSubject.next(this.posts.slice());
       });
+  }
+
+  private triggerEventsOnSuccess(): void {
+    this.postsUpdatedSubject.next(this.posts.slice());
+    this.router.navigate(['/']);
   }
 }
