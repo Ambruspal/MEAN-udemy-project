@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Post, PostResponse } from '../models/post.model';
+import { Post } from '../models/post.model';
 import { POSTS_URL, SERVER_URL } from '../constants/url.constants';
 import { Router } from '@angular/router';
 
@@ -28,6 +28,7 @@ export class PostsService {
             title: post.title,
             content: post.content,
             id: post._id,
+            imagePath: post.imagePath,
           }))
         )
       )
@@ -38,7 +39,7 @@ export class PostsService {
   }
 
   getPost(id: string) {
-    return this.http.get<PostResponse>(
+    return this.http.get<Post>(
       `${SERVER_URL}${this.serverUrl}${POSTS_URL}${id}`
     );
   }
@@ -47,36 +48,70 @@ export class PostsService {
     return this.postsUpdatedSubject.asObservable();
   }
 
-  addPost(title: string, content: string): void {
-    const post: Post = {
-      title,
-      content,
-    };
+  addPost(title: string, content: string, image: File): void {
+    const postData = new FormData();
+    postData.append('title', title),
+      postData.append('content', content),
+      postData.append('image', image, title);
 
     this.http
-      .post<{ message: string; postId: string }>(
+      .post<{ message: string; post: Post }>(
         `${SERVER_URL}${this.serverUrl}${POSTS_URL}`,
-        post
+        postData
       )
       .subscribe((response) => {
         console.log(response.message);
-        post.id = response.postId;
+
+        const post: Post = {
+          id: response.post.id,
+          title: response.post.title,
+          content: response.post.content,
+          imagePath: response.post.imagePath,
+        };
+
         this.posts.push(post);
         this.triggerEventsOnSuccess();
       });
   }
 
-  updatePost(id: string, title: string, content: string): void {
-    const postUpdate = { id, title, content };
+  updatePost(
+    id: string,
+    title: string,
+    content: string,
+    image: File | string
+  ): void {
+    let postData: Post | FormData;
+
+    if (typeof image === 'object') {
+      postData = new FormData();
+      postData.append('id', id);
+      postData.append('title', title);
+      postData.append('content', content);
+      postData.append('image', image, title);
+    } else {
+      postData = {
+        id: id,
+        title: title,
+        content: content,
+        imagePath: image,
+      };
+    }
+
     this.http
       .put<{ message: string; postId: string }>(
         `${SERVER_URL}${this.serverUrl}${POSTS_URL}${id}`,
-        postUpdate
+        postData
       )
       .subscribe((response) => {
+        const post: Post = {
+          id: id,
+          title: title,
+          content: content,
+          imagePath: '',
+        };
         console.log(response.message);
-        const index = this.posts.findIndex((p) => p.id === postUpdate.id);
-        this.posts.splice(index, 1, postUpdate);
+        const index = this.posts.findIndex((p) => p.id === id);
+        this.posts.splice(index, 1, post);
         this.triggerEventsOnSuccess();
       });
   }

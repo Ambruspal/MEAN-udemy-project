@@ -5,6 +5,9 @@
             <mat-expansion-panel-header>
                 {{ post.title }}
             </mat-expansion-panel-header>
+            <div class="post-image">
+                <img [src]="post.imagePath" [alt]="post.title">
+            </div>
             <p>{{ post.content }}</p>
             <mat-action-row>
                 <a [routerLink]="['/edit', post.id]" mat-button color="primary">EDIT</a>
@@ -12,6 +15,7 @@
             </mat-action-row>
         </mat-expansion-panel>
     </mat-accordion>
+    <mat-paginator [length]="totalPosts" [pageSize]="postsPerPage" [pageSizeOptions]="pageSizeOptions" (page)="changePage($event)"></mat-paginator>
     <ng-template #noPosts>
         <p class="info-text mat-body-1">No posts added yet!</p>
     </ng-template>
